@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:alpine
+    container_name: urlshortener-db
+    environment:
+      - POSTGRES_DB=urlshortener
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5403:5432"
+    networks:
+      default:
+        aliases:
+          - urlshortener-db
+
+  app:
+    build: .
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://urlshortener-db:5432/urlshortener
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    ports:
+      - "4000:4000"
+      - "8080:8080"
+    command: [ "./wait-for-it.sh","-t","0","urlshortener-db:5432", "--","java","-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:4000","-jar","my-url-shortener-app.jar" ]
+    depends_on:
+      - db
+    links:
+      - db

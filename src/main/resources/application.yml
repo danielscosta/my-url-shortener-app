@@ -1,0 +1,12 @@
+spring:
+  data:
+    rest:
+      basePath: /api
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:urlshortener}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD}

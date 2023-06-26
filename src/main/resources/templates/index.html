@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>URL Shortener</title>
+  <style>
+        /* CSS styles for the page */
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            margin-top: 20px;
+            text-align: center;
+        }
+        input[type="url"] {
+            padding: 8px;
+            width: 300px;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            padding: 8px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body onload="fetchUrls()">
+<h1>URL Shortener</h1>
+<form id="shortenForm" th:action="@{/api/shorten}" method="post">
+  <input type="url" id="originalURL" name="originalURL" pattern="^(https?|ftp):\/\/[^\s\/$?#].[^\s]*$" placeholder="Enter URL" required />
+  <input type="submit" value="Shorten">
+  <span id="urlError" style="color: red; display: none;">Invalid URL. Please enter a valid URL.</span>
+</form>
+<table id="statsTable">
+  <tr>
+    <th>Original URL</th>
+    <th>Shortened URL</th>
+    <th>Shortened Count</th>
+    <th>Accessed Count</th>
+  </tr>
+</table>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+        // JavaScript code to handle the form submission and fetch shortened URL statistics
+        var domain = /*[[${domain}]]*/;
+
+        function fetchUrls() {
+            // Fetch the list of shortened URLs and their statistics
+            fetch("/api/shortened_urls", {
+                credentials: 'same-origin' // Include this option to send cookies from the current domain
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Show the table
+                document.getElementById("statsTable").style.display = "table";
+
+                // Clear existing rows from the table
+                var table = document.getElementById("statsTable");
+                var rowCount = table.rows.length;
+                for (var i = rowCount - 1; i > 0; i--) {
+                  table.deleteRow(i);
+                }
+
+                // Add the new rows to the table
+                data.forEach(info => {
+                    var newRow = table.insertRow(-1); // Insert new row at the end of the table
+                    var urlCell = newRow.insertCell(0);
+                    var shortenedUrlCell = newRow.insertCell(1);
+                    var shortenedCountCell = newRow.insertCell(2);
+                    var accessedCountCell = newRow.insertCell(3);
+
+                    urlCell.innerHTML = info.originalURL;
+                    shortenedUrlCell.innerHTML = domain + "/api/shortCode?value=" + info.shortCode;
+                    shortenedCountCell.innerHTML = info.shortenedTimes;
+                    accessedCountCell.innerHTML = info.accessedTimes;
+                });
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        }
+/*]]>*/
+</script>
+</body>
+</html>
